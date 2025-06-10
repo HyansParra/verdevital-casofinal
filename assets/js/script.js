@@ -1,26 +1,21 @@
-// assets/js/script.js
+// assets/js/script.js --- VERSIÓN FINAL Y REVISADA
 
 let productos = [];
 let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
 
-// --- VERSIÓN FINAL DE LA LÓGICA DE AUTENTICACIÓN Y CARRITO ---
+// --- Lógica de UI de Autenticación (Sin cambios) ---
 function updateNavActions() {
     const navActions = document.getElementById('nav-actions');
     const token = localStorage.getItem('token');
-    
-    // Limpiamos la barra de acciones para redibujarla
-    navActions.innerHTML = '';
+    navActions.innerHTML = ''; 
 
-    // 1. Creamos los botones de Login/Logout
     if (token) {
-        // Si hay token, mostramos solo "Cerrar Sesión"
         const btnLogout = document.createElement('button');
         btnLogout.id = 'btnLogout';
         btnLogout.textContent = 'Cerrar Sesión';
         btnLogout.onclick = handleLogout;
         navActions.appendChild(btnLogout);
     } else {
-        // Si no hay token, mostramos "Iniciar Sesión" y "Registrarse"
         const btnLogin = document.createElement('button');
         btnLogin.id = 'btnLogin';
         btnLogin.textContent = 'Iniciar Sesión';
@@ -34,27 +29,63 @@ function updateNavActions() {
         navActions.appendChild(btnRegister);
     }
     
-    // 2. Creamos el ícono del carrito, que AHORA es un botón
     const cartDiv = document.createElement('div');
     cartDiv.className = 'cart';
-    cartDiv.style.cursor = 'pointer'; // Le damos estilo de botón
+    cartDiv.style.cursor = 'pointer';
     cartDiv.innerHTML = `🛒 <span id="carritoCount">${carrito.length}</span>`;
-    
-    // Asignamos la función de clic al carrito
     cartDiv.onclick = () => {
         if (localStorage.getItem('token')) {
-            abrirModal('modalCheckout'); // Si está logueado, abre el checkout
+            abrirModal('modalCheckout');
         } else {
             alert('Por favor, inicia sesión para ver tu carrito.');
-            abrirModal('modalLogin'); // Si no, pide que inicie sesión
+            abrirModal('modalLogin');
         }
     };
     navActions.appendChild(cartDiv);
 }
 
+// --- Renderizado de Productos (VERSIÓN MEJORADA Y A PRUEBA DE ERRORES) ---
+function renderizarProductos(lista = productos, filtroCat = 'Todas') {
+    const grid = document.getElementById('productos');
+    grid.innerHTML = '';
+    const filtrados = (filtroCat === 'Todas') ? lista : lista.filter(p => p.categoria === filtroCat);
+  
+    filtrados.forEach(p => {
+        // Creamos los elementos uno por uno
+        const card = document.createElement('div');
+        card.className = 'producto-card';
+
+        const img = document.createElement('img');
+        img.src = p.imagen; // Asignamos la URL directamente al atributo src
+        img.alt = p.nombre;
+
+        const h3 = document.createElement('h3');
+        h3.textContent = p.nombre;
+
+        const precio = document.createElement('p');
+        precio.className = 'precio';
+        precio.textContent = `$${p.precio.toLocaleString()}`;
+
+        const button = document.createElement('button');
+        button.textContent = 'Ver más';
+        button.onclick = () => verProducto(p._id);
+
+        // Los añadimos a la tarjeta
+        card.appendChild(img);
+        card.appendChild(h3);
+        card.appendChild(precio);
+        card.appendChild(button);
+
+        // Finalmente, añadimos la tarjeta completa a la grilla
+        grid.appendChild(card);
+    });
+}
+
+
+// --- RESTO DEL CÓDIGO (Sin cambios, pero incluido para que copies y pegues todo) ---
+
 function handleLogout() {
     localStorage.removeItem('token');
-    // Vaciamos el carrito al cerrar sesión para evitar confusiones
     carrito = [];
     guardarCarrito();
     actualizarResumen();
@@ -66,14 +97,11 @@ window.onload = () => {
   fetchProductos();
   actualizarResumen();
   updateNavActions(); 
-  
   document.getElementById('formLogin').onsubmit = handleLogin;
   document.getElementById('formRegistro').onsubmit = handleRegister;
   document.getElementById('formNewsletter').onsubmit = handleNewsletter;
   document.getElementById('formCheckout').onsubmit = handleCheckout;
 };
-
-// --- EL RESTO DEL CÓDIGO PERMANECE IGUAL, PERO LO INCLUYO PARA QUE REEMPLACES TODO ---
 
 async function handleLogin(e) {
     e.preventDefault();
@@ -200,18 +228,6 @@ function renderizarCategorias() {
   });
 }
 
-function renderizarProductos(lista = productos, filtroCat = 'Todas') {
-  const grid = document.getElementById('productos');
-  grid.innerHTML = '';
-  const filtrados = (filtroCat === 'Todas') ? lista : lista.filter(p => p.categoria === filtroCat);
-  filtrados.forEach(p => {
-    const card = document.createElement('div');
-    card.className = 'producto-card';
-    card.innerHTML = `<img src="${p.imagen}" alt="${p.nombre}"><h3>${p.nombre}</h3><p class='precio'>$${p.precio.toLocaleString()}</p><button onclick='verProducto("${p._id}")'>Ver más</button>`;
-    grid.appendChild(card);
-  });
-}
-
 function verProducto(id) {
   const p = productos.find(x => x._id === id);
   if (!p) return;
@@ -242,7 +258,6 @@ function actualizarResumen() {
   if(carritoCountSpan) {
     carritoCountSpan.innerText = carrito.length;
   }
-  
   const lista = document.getElementById('listaCarrito');
   if (lista) {
     lista.innerHTML = '';
