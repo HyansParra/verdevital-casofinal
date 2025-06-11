@@ -1,12 +1,12 @@
-// assets/js/script.js --- VERSIÓN FINAL Y REVISADA
+// assets/js/script.js --- VERSIÓN ESTABLE ANTERIOR
 
 let productos = [];
 let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
 
-// --- Lógica de UI de Autenticación (Sin cambios) ---
 function updateNavActions() {
     const navActions = document.getElementById('nav-actions');
     const token = localStorage.getItem('token');
+    
     navActions.innerHTML = ''; 
 
     if (token) {
@@ -44,46 +44,6 @@ function updateNavActions() {
     navActions.appendChild(cartDiv);
 }
 
-// --- Renderizado de Productos (VERSIÓN MEJORADA Y A PRUEBA DE ERRORES) ---
-function renderizarProductos(lista = productos, filtroCat = 'Todas') {
-    const grid = document.getElementById('productos');
-    grid.innerHTML = '';
-    const filtrados = (filtroCat === 'Todas') ? lista : lista.filter(p => p.categoria === filtroCat);
-  
-    filtrados.forEach(p => {
-        // Creamos los elementos uno por uno
-        const card = document.createElement('div');
-        card.className = 'producto-card';
-
-        const img = document.createElement('img');
-        img.src = p.imagen; // Asignamos la URL directamente al atributo src
-        img.alt = p.nombre;
-
-        const h3 = document.createElement('h3');
-        h3.textContent = p.nombre;
-
-        const precio = document.createElement('p');
-        precio.className = 'precio';
-        precio.textContent = `$${p.precio.toLocaleString()}`;
-
-        const button = document.createElement('button');
-        button.textContent = 'Ver más';
-        button.onclick = () => verProducto(p._id);
-
-        // Los añadimos a la tarjeta
-        card.appendChild(img);
-        card.appendChild(h3);
-        card.appendChild(precio);
-        card.appendChild(button);
-
-        // Finalmente, añadimos la tarjeta completa a la grilla
-        grid.appendChild(card);
-    });
-}
-
-
-// --- RESTO DEL CÓDIGO (Sin cambios, pero incluido para que copies y pegues todo) ---
-
 function handleLogout() {
     localStorage.removeItem('token');
     carrito = [];
@@ -97,6 +57,7 @@ window.onload = () => {
   fetchProductos();
   actualizarResumen();
   updateNavActions(); 
+  
   document.getElementById('formLogin').onsubmit = handleLogin;
   document.getElementById('formRegistro').onsubmit = handleRegister;
   document.getElementById('formNewsletter').onsubmit = handleNewsletter;
@@ -228,6 +189,33 @@ function renderizarCategorias() {
   });
 }
 
+function renderizarProductos(lista = productos, filtroCat = 'Todas') {
+    const grid = document.getElementById('productos');
+    grid.innerHTML = '';
+    const filtrados = (filtroCat === 'Todas') ? lista : lista.filter(p => p.categoria === filtroCat);
+  
+    filtrados.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'producto-card';
+        const img = document.createElement('img');
+        img.src = p.imagen;
+        img.alt = p.nombre;
+        const h3 = document.createElement('h3');
+        h3.textContent = p.nombre;
+        const precio = document.createElement('p');
+        precio.className = 'precio';
+        precio.textContent = `$${p.precio.toLocaleString()}`;
+        const button = document.createElement('button');
+        button.textContent = 'Ver más';
+        button.onclick = () => verProducto(p._id);
+        card.appendChild(img);
+        card.appendChild(h3);
+        card.appendChild(precio);
+        card.appendChild(button);
+        grid.appendChild(card);
+    });
+}
+
 function verProducto(id) {
   const p = productos.find(x => x._id === id);
   if (!p) return;
@@ -286,13 +274,16 @@ function handleNewsletter(e) {
 
 function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
 function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
-function scrollToSection(id) { document.getElementById(id).scrollIntoView({ behavior: 'smooth' }); }
+function scrollToSection(id) { 
+    const element = document.getElementById(id);
+    if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+    }
+}
 function filtrarProductos() {
     const texto = document.getElementById('buscador').value.toLowerCase();
-    document.querySelectorAll('.producto-card').forEach(card => {
-        const nombre = card.querySelector('h3').innerText.toLowerCase();
-        card.style.display = nombre.includes(texto) ? 'flex' : 'none';
-    });
+    const productosVisibles = productos.filter(p => p.nombre.toLowerCase().includes(texto));
+    renderizarProductos(productosVisibles);
 }
 function ordenarProductos() {
     const orden = document.getElementById('orden').value;
